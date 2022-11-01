@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.AttributedString
 
 
 /*
@@ -54,11 +53,11 @@ class AsteroidAdapter(private val clickListener: AsteroidListener) : ListAdapter
         return when (viewType) {
             ITEM_VIEW_TYPE_HEADER -> TextViewHolder.from(parent)
             ITEM_VIEW_TYPE_ITEM -> ViewHolder.from(parent)
-            else -> throw ClassCastException("Unknown viewType ${viewType}")
+            else -> throw ClassCastException("Unknown viewType $viewType")
         }
     }
 
-    class TextViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    class TextViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         companion object {
             fun from(parent: ViewGroup): TextViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
@@ -75,8 +74,8 @@ class AsteroidAdapter(private val clickListener: AsteroidListener) : ListAdapter
         }
     }
 
-    class ViewHolder private constructor(val binding: AsteroidItemBinding)
-        : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder private constructor(private val binding: AsteroidItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(clickListener: AsteroidListener, item: Asteroid) {
             binding.asteroid = item
@@ -112,16 +111,16 @@ class AsteroidDiffCallback : DiffUtil.ItemCallback<DataItem>() {
     }
 }
 
-class AsteroidListener(val clickListener: (asteroidId: Long) -> Unit) {
-    fun onClick(asteroid: Asteroid) = clickListener(asteroid.id)
+class AsteroidListener(val clickListener: (asteroid: Asteroid) -> Unit) {
+    fun onClick(asteroid: Asteroid) = clickListener(asteroid)
 }
 
 sealed class DataItem {
-    data class AsteroidItem(val asteroid: Asteroid): DataItem() {
+    data class AsteroidItem(val asteroid: Asteroid) : DataItem() {
         override val id = asteroid.id
     }
 
-    object Header: DataItem() {
+    object Header : DataItem() {
         override val id = Long.MIN_VALUE
     }
 

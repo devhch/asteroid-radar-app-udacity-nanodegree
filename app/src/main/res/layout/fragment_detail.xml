@@ -4,12 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
         <variable
             name="asteroid"
-            type="com.devhch.asteroidradar.Asteroid" />
+            type="com.devhch.asteroidradar.models.Asteroid" />
+
+        <variable
+            name="viewModel"
+            type="com.devhch.asteroidradar.detail.DetailViewModel" />
+
     </data>
 
+    <!-- I used ConstraintLayout to wrap with size Screen-->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,6 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
+            android:onClick="@{() -> viewModel.onExplanationButtonClicked()}"
             app:asteroidStatusImage="@{asteroid.potentiallyHazardous}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -34,6 +40,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/activity_main_image_of_the_day">
 
+            <!-- I used LinearLayout here to align children vertically. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

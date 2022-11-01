@@ -1,9 +1,10 @@
 package com.devhch.asteroidradar.api
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.devhch.asteroidradar.Asteroid
-import com.devhch.asteroidradar.Constants
+import com.devhch.asteroidradar.models.Asteroid
+import com.devhch.asteroidradar.models.PictureOfDay
+import com.devhch.asteroidradar.utils.Constants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,8 +37,10 @@ fun parseAsteroidsJsonResult(jsonResult: JSONObject): ArrayList<Asteroid> {
                 val isPotentiallyHazardous = asteroidJson
                     .getBoolean("is_potentially_hazardous_asteroid")
 
-                val asteroid = Asteroid(id, codename, formattedDate, absoluteMagnitude,
-                    estimatedDiameter, relativeVelocity, distanceFromEarth, isPotentiallyHazardous)
+                val asteroid = Asteroid(
+                    id, codename, formattedDate, absoluteMagnitude,
+                    estimatedDiameter, relativeVelocity, distanceFromEarth, isPotentiallyHazardous
+                )
                 asteroidList.add(asteroid)
             }
         }
@@ -52,14 +55,54 @@ private fun getNextSevenDaysFormattedDates(): ArrayList<String> {
     val calendar = Calendar.getInstance()
     for (i in 0..Constants.DEFAULT_END_DATE_DAYS) {
         val currentTime = calendar.time
-        val dateFormat = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
-        } else {
-            TODO("VERSION.SDK_INT < N")
-        }
+
+        val dateFormat = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+
         formattedDateList.add(dateFormat.format(currentTime))
         calendar.add(Calendar.DAY_OF_YEAR, 1)
     }
 
     return formattedDateList
+}
+
+fun getToday(): String {
+    return formatDate(Calendar.getInstance().time)
+}
+
+fun getSeventhDay(): String {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DAY_OF_YEAR, 7)
+    return formatDate(calendar.time)
+}
+
+private fun formatDate(date: Date): String {
+    // Simple Date Format
+    val dateFormat = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+    return dateFormat.format(date)
+}
+
+suspend fun getPictureOfDay(): PictureOfDay? {
+    var pictureOfDay: PictureOfDay
+    withContext(Dispatchers.IO) {
+        pictureOfDay = AsteroidApi.retrofitService.getPictureOfDayAsync().await()
+    }
+    if (pictureOfDay.mediaType == Constants.KEY_IMAGE_TYPE) {
+        return pictureOfDay
+    }
+    return null
+}
+
+fun ArrayList<Asteroid>.asDomainModel(): Array<Asteroid> {
+    return map {
+        Asteroid(
+            id = it.id,
+            codename = it.codename,
+            closeApproachDate = it.closeApproachDate,
+            absoluteMagnitude = it.absoluteMagnitude,
+            estimatedDiameter = it.estimatedDiameter,
+            relativeVelocity = it.relativeVelocity,
+            distanceFromEarth = it.distanceFromEarth,
+            isPotentiallyHazardous = it.isPotentiallyHazardous
+        )
+    }.toTypedArray()
 }
